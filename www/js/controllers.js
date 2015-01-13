@@ -1,6 +1,6 @@
 angular.module('buurtmeter.controllers', [])
 
-.controller('MapController', function($scope, AreaService){
+.controller('MapController', function($scope, AreaService, LocalStorage){
     var map = {
         defaults: {
             tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
@@ -16,15 +16,23 @@ angular.module('buurtmeter.controllers', [])
 			//autoDiscover: true,
             lat: 51.221311,
             lng: 4.399160,
-            zoom: 17
-        },
+            zoom: 20
+        }
     };
-
+	
 	$scope.map = map;
 	$scope.markers = new Array();
+	
+	navigator.geolocation.getCurrentPosition(function(position){
+		$scope.map.center  = {
+			lat: position.coords.latitude,
+			lng: position.coords.longitude,
+			zoom : 17
+		};
+	});
 
 	/* http://alienryderflex.com/polygon/
-		The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, then you're outside the polygon. If an odd number crosses above, then you're inside. */
+	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, then you're outside the polygon. If an odd number crosses above, then you're inside. */
 	function inPolygon(location, polyLoc){
 		var lastPoint = polyLoc[polyLoc.length-1];
 		var isInside = false;
@@ -79,18 +87,22 @@ angular.module('buurtmeter.controllers', [])
 			message: 'My Added Marker'
 		});*/
 		var areas = AreaService.all();
+		var wijknaam = ''
 		for(var i = 0; i < areas.length; i++){
 			var geometry = JSON.parse(areas[i].geometry);
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
-			   console.log(areas[i].wijknaam);
+			   wijknaam = areas[i].wijknaam;
 			   break;
 			}
 		}
+		LocalStorage.set('area', wijknaam);
+		console.log(LocalStorage.get('area'));
 	});
+
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
-					   
+		
 	});
 })
 

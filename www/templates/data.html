@@ -1,0 +1,15 @@
+<!--
+  This template loads for the 'tab.data' state (app.js)
+-->
+<view>
+  <content has-header='true' has-tabs='true' padding='true'>
+    <p>
+	Wijken :
+		<ul>
+			<li ng-repeat='x in areas'>
+				{{ x.wijknaam }}
+			</li>
+		</ul>
+    </p>
+  </content>
+</view>

@@ -1,4 +1,4 @@
-angular.module('buurtmeter.controllers', [])
+angular.module('buurtmeter.controllers', ['ionic'])
 
 .controller('MapController', function($scope, AreaService, LocalStorage){
     var map = {
@@ -20,7 +20,6 @@ angular.module('buurtmeter.controllers', [])
     };
 	
 	$scope.map = map;
-	$scope.toggleModel = '';
 	
 	// navigator.geolocation.getCurrentPosition(function(position){
 	// 	$scope.map.center  = {
@@ -98,6 +97,7 @@ angular.module('buurtmeter.controllers', [])
 
 .controller('DataController', function($scope, DataSetService, LocalStorage){
 	$scope.datasets = DataSetService.all();
+	$scope.usedSets = LocalStorage.getObject('usedSets');
 
 	$scope.download = function(set){
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
@@ -131,7 +131,6 @@ angular.module('buurtmeter.controllers', [])
 	                        );
 	                    },
 	                    function(){
-	                        //$ionicLoading.hide();
 	                        alert('Fout bij ophalen dataset');
 	                    }
 	                );
@@ -144,7 +143,8 @@ angular.module('buurtmeter.controllers', [])
 	}
 
 	$scope.load = function(set){
-		alert($scope.toggleModel);
+		//alert($scope.usedSets[set.name]);
+		LocalStorage.setObject('usedSets', $scope.usedSets);
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
 	        fs.root.getDirectory(
 	            'Buurtmeter',
@@ -162,7 +162,7 @@ angular.module('buurtmeter.controllers', [])
 	                        fe.file(function(file){
 								var reader = new FileReader();
 								reader.onloadend = function(e){
-									alert(this.result);
+									//alert(this.result);
 								}
 								reader.readAsText(file);
 							});

@@ -9,17 +9,13 @@
    					<input type='range' name='volume'>
  				</div-->
 				<label class='toggle toggle-calm'>
-					<input type='checkbox' ng-model='toggleModel' ng-checked='toggleModel' ng-click='load(set)'>
+					<input type='checkbox' ng-model='usedSets[set.name]' ng-change='load(set)'/>
 					<div class='track'>
          				<div class='handle'></div>
        				</div>
 				</label>
 			</li>
-		</div>
+		</ul>
     </div>
-    <div>
-    	Check me to check both: <input type="checkbox" ng-model="master"><br/>
-<input id="checkSlave" type="checkbox" ng-checked="master">
-	</div>
   </content>
 </view>

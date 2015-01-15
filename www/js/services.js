@@ -13,6 +13,18 @@ angular.module('buurtmeter.services', [])
   }
 })
 
+.factory('DataSetService', function() {
+  var datasets = [{"name":"Bereikzone zwembaden","url":"http://datasets.antwerpen.be/v4/gis/bereikzwembadwijkstadsdeel.json","type":"geometry"},{"name":"Hondenloopzones","url":"http://datasets.antwerpen.be/v4/gis/hondenloopzone.json","type":"point"},{"name":"Ziekenhuizen","url":"http://datasets.antwerpen.be/v4/gis/ziekenhuisoverzicht.json","type":"point"}];
+  return {
+    all: function() {
+      return datasets;
+    },
+    get: function(name) {
+      return datasets[name];
+    }
+  }
+})
+
 .factory('LocalStorage', ['$window', function($window) {
    return {
 	  set: function(key, value) {
@@ -29,4 +41,6 @@ angular.module('buurtmeter.services', [])
 	  }
    }
 }]);
+
+
 

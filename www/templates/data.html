@@ -1,15 +1,25 @@
-<!--
-  This template loads for the 'tab.data' state (app.js)
--->
 <view>
   <content has-header='true' has-tabs='true' padding='true'>
-    <p>
-	Wijken :
-		<ul>
-			<li ng-repeat='x in areas'>
-				{{ x.geometry }}
+    <div>
+		<center><h3>DataSets</h3></center>
+		<ul class='list' ng-repeat='set in datasets'>
+			<li class='item item-toggle'>
+				{{ set.name }}
+				<!--div class='range'>
+   					<input type='range' name='volume'>
+ 				</div-->
+				<label class='toggle toggle-calm'>
+					<input type='checkbox' ng-model='toggleModel' ng-checked='toggleModel' ng-click='load(set)'>
+					<div class='track'>
+         				<div class='handle'></div>
+       				</div>
+				</label>
 			</li>
-		</ul>
-    </p>
+		</div>
+    </div>
+    <div>
+    	Check me to check both: <input type="checkbox" ng-model="master"><br/>
+<input id="checkSlave" type="checkbox" ng-checked="master">
+	</div>
   </content>
 </view>

@@ -13,23 +13,22 @@ angular.module('buurtmeter.controllers', [])
             }
         },
         center: {
-			//autoDiscover: true,
             lat: 51.221311,
             lng: 4.399160,
-            zoom: 20
+            zoom: 17
         }
     };
 	
 	$scope.map = map;
-	$scope.markers = new Array();
+	$scope.toggleModel = '';
 	
-	navigator.geolocation.getCurrentPosition(function(position){
-		$scope.map.center  = {
-			lat: position.coords.latitude,
-			lng: position.coords.longitude,
-			zoom : 17
-		};
-	});
+	// navigator.geolocation.getCurrentPosition(function(position){
+	// 	$scope.map.center  = {
+	// 		lat: position.coords.latitude,
+	// 		lng: position.coords.longitude,
+	// 		zoom : 17
+	// 	};
+	// });
 
 	/* http://alienryderflex.com/polygon/
 	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, then you're outside the polygon. If an odd number crosses above, then you're inside. */
@@ -81,31 +80,102 @@ angular.module('buurtmeter.controllers', [])
 			lng: lng,
 			zoom : 17
 		};
-		/*$scope.markers.push({
-			lat: lat,
-			lng: lng,
-			message: 'My Added Marker'
-		});*/
 		var areas = AreaService.all();
-		var wijknaam = ''
 		for(var i = 0; i < areas.length; i++){
 			var geometry = JSON.parse(areas[i].geometry);
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
-			   wijknaam = areas[i].wijknaam;
+			   $scope.area_title = areas[i].wijknaam;
 			   break;
 			}
 		}
-		LocalStorage.set('area', wijknaam);
-		console.log(LocalStorage.get('area'));
 	});
 
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
-		
 	});
 })
 
-.controller('DataController', function($scope, AreaService){
-	$scope.areas = AreaService.all();
+.controller('DataController', function($scope, DataSetService, LocalStorage){
+	$scope.datasets = DataSetService.all();
+
+	$scope.download = function(set){
+	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
+	        fs.root.getDirectory(
+	            'Buurtmeter',
+	            {
+	                create: true
+	            },
+	            function(dirEntry) {
+	                dirEntry.getFile(
+	                    set.name + '.json',
+	                    {
+	                        create: true,
+	                        exclusive: false
+	                    },
+	                    function gotFileEntry(fe){
+	                        var p = fe.toURL();
+	                        fe.remove();
+	                        ft = new FileTransfer();
+	                        ft.download(
+	                            encodeURI(set.url),
+	                            p,
+	                            function(entry){
+	                                //alert(entry.toURL());
+	                            },
+	                            function(error){
+	                                alert(error.source);
+	                            },
+	                            false,
+	                            null
+	                        );
+	                    },
+	                    function(){
+	                        //$ionicLoading.hide();
+	                        alert('Fout bij ophalen dataset');
+	                    }
+	                );
+	            }
+	        );
+	    },
+	    function(){
+	        alert('Fout bij ophalen filesysteem');
+	    });
+	}
+
+	$scope.load = function(set){
+		alert($scope.toggleModel);
+	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
+	        fs.root.getDirectory(
+	            'Buurtmeter',
+	            {
+	                create: true
+	            },
+	            function(dirEntry){
+	                dirEntry.getFile(
+	                    set.name + '.json',
+	                    {
+	                        create: false,
+	                        exclusive: false
+	                    },
+	                    function gotFileEntry(fe){
+	                        fe.file(function(file){
+								var reader = new FileReader();
+								reader.onloadend = function(e){
+									alert(this.result);
+								}
+								reader.readAsText(file);
+							});
+	                    },
+	                    function(error){
+	                        $scope.download(set);
+	                    }
+	                );
+	            }
+	        );
+	    },
+	    function(){
+	        alert('Fout bij ophalen filesysteem');
+	    });
+	}
 });

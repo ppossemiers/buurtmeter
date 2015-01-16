@@ -1,4 +1,4 @@
-angular.module('buurtmeter.controllers', ['ionic'])
+angular.module('buurtmeter.controllers', [])
 
 .controller('MapController', function($scope, AreaService, LocalStorage){
     var map = {
@@ -12,6 +12,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
                 opacity: 1
             }
         },
+        markers : {},
         center: {
             lat: 51.221311,
             lng: 4.399160,
@@ -20,6 +21,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
     };
 	
 	$scope.map = map;
+	$scope.markerCount = 0;
 	
 	// navigator.geolocation.getCurrentPosition(function(position){
 	// 	$scope.map.center  = {
@@ -30,7 +32,9 @@ angular.module('buurtmeter.controllers', ['ionic'])
 	// });
 
 	/* http://alienryderflex.com/polygon/
-	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, then you're outside the polygon. If an odd number crosses above, then you're inside. */
+	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. 
+	Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, 
+	then you're outside the polygon. If an odd number crosses above, then you're inside. */
 	function inPolygon(location, polyLoc){
 		var lastPoint = polyLoc[polyLoc.length-1];
 		var isInside = false;
@@ -74,7 +78,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
 		var lat = locationEvent.leafletEvent.latlng.lat;
 		var lng = locationEvent.leafletEvent.latlng.lng;
-		$scope.map.center  = {
+		$scope.map.center = {
 			lat: lat,
 			lng: lng,
 			zoom : 17
@@ -84,8 +88,15 @@ angular.module('buurtmeter.controllers', ['ionic'])
 			var geometry = JSON.parse(areas[i].geometry);
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
-			   $scope.area_title = areas[i].wijknaam;
-			   break;
+				$scope.map.markers[$scope.markerCount] = {
+		          lat:lat,
+		          lng:lng,
+		          message:areas[i].wijknaam + ' / ' + 'Score : ' + 15,
+		          focus: true,
+		          draggable: false
+		        };
+				$scope.markerCount += 1;
+ 				break;
 			}
 		}
 	});
@@ -98,6 +109,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
 .controller('DataController', function($scope, DataSetService, LocalStorage){
 	$scope.datasets = DataSetService.all();
 	$scope.usedSets = LocalStorage.getObject('usedSets');
+	$scope.usedRanges = {};
 
 	$scope.download = function(set){
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
@@ -143,7 +155,6 @@ angular.module('buurtmeter.controllers', ['ionic'])
 	}
 
 	$scope.load = function(set){
-		//alert($scope.usedSets[set.name]);
 		LocalStorage.setObject('usedSets', $scope.usedSets);
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
 	        fs.root.getDirectory(

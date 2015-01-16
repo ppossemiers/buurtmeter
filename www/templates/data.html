@@ -5,9 +5,9 @@
 		<ul class='list' ng-repeat='set in datasets'>
 			<li class='item item-toggle'>
 				{{ set.name }}
-				<!--div class='range'>
-   					<input type='range' name='volume'>
- 				</div-->
+				<div class='range'>
+   					<input type='range' ng-model='usedRanges[set.name]' min='0' max='10' value='5'>
+ 				</div>
 				<label class='toggle toggle-calm'>
 					<input type='checkbox' ng-model='usedSets[set.name]' ng-change='load(set)'/>
 					<div class='track'>

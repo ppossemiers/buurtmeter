@@ -103,6 +103,8 @@ angular.module('buurtmeter.controllers', [])
 
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
+		$scope.map.markers = {};
+    	$scope.markerCount = 0;
 	});
 })
 
@@ -111,6 +113,7 @@ angular.module('buurtmeter.controllers', [])
 	$scope.usedSets = LocalStorage.getObject('usedSets');
 
 	$scope.usedRanges = {'Ziekenhuizen':7, 'Hondenloopzones':9, 'Bereikzone zwembaden':3};
+	// TODO : localstorage van usedRanges
   	$scope.showMeTheNumber = function(){
     	alert($scope.usedRanges['Ziekenhuizen']);
   	}

@@ -109,7 +109,11 @@ angular.module('buurtmeter.controllers', [])
 .controller('DataController', function($scope, DataSetService, LocalStorage){
 	$scope.datasets = DataSetService.all();
 	$scope.usedSets = LocalStorage.getObject('usedSets');
-	$scope.usedRanges = {};
+
+	$scope.usedRanges = {'Ziekenhuizen':7, 'Hondenloopzones':9, 'Bereikzone zwembaden':3};
+  	$scope.showMeTheNumber = function(){
+    	alert($scope.usedRanges['Ziekenhuizen']);
+  	}
 
 	$scope.download = function(set){
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){

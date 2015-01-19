@@ -1,4 +1,4 @@
-angular.module('buurtmeter.controllers', [])
+angular.module('buurtmeter.controllers', ['ionic'])
 
 .controller('MapController', function($scope, AreaService, LocalStorage){
     var map = {
@@ -12,7 +12,7 @@ angular.module('buurtmeter.controllers', [])
                 opacity: 1
             }
         },
-        markers : {},
+        markers : LocalStorage.getObject('mapMarkers'),
         center: {
             lat: 51.221311,
             lng: 4.399160,
@@ -21,7 +21,7 @@ angular.module('buurtmeter.controllers', [])
     };
 	
 	$scope.map = map;
-	$scope.markerCount = 0;
+	$scope.markerCount = $scope.map.markers.length;
 	
 	// navigator.geolocation.getCurrentPosition(function(position){
 	// 	$scope.map.center  = {
@@ -95,6 +95,7 @@ angular.module('buurtmeter.controllers', [])
 		          focus: true,
 		          draggable: false
 		        };
+		        LocalStorage.setObject('mapMarkers', $scope.map.markers);
 				$scope.markerCount += 1;
  				break;
 			}
@@ -103,19 +104,24 @@ angular.module('buurtmeter.controllers', [])
 
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
-		$scope.map.markers = {};
+		$scope.map.markers = [];
     	$scope.markerCount = 0;
+    	LocalStorage.setObject('mapMarkers', $scope.map.markers);
 	});
 })
 
 .controller('DataController', function($scope, DataSetService, LocalStorage){
-	$scope.datasets = DataSetService.all();
-	$scope.usedSets = LocalStorage.getObject('usedSets');
+	$scope.allDataSets = DataSetService.all();
+	$scope.savedValues = LocalStorage.getObject('savedValues');
+	if(JSON.stringify($scope.savedValues) == '{}'){
+		for(var i = 0; i < $scope.allDataSets.length; i++){
+			$scope.savedValues[$scope.allDataSets[i].name] = {'used':false, 'range':5};
+		}
+		LocalStorage.setObject('savedValues', $scope.savedValues);
+	}
 
-	$scope.usedRanges = {'Ziekenhuizen':7, 'Hondenloopzones':9, 'Bereikzone zwembaden':3};
-	// TODO : localstorage van usedRanges
-  	$scope.showMeTheNumber = function(){
-    	alert($scope.usedRanges['Ziekenhuizen']);
+  	$scope.saveRange = function(){
+    	LocalStorage.setObject('savedValues', $scope.savedValues);
   	}
 
 	$scope.download = function(set){
@@ -162,7 +168,7 @@ angular.module('buurtmeter.controllers', [])
 	}
 
 	$scope.load = function(set){
-		LocalStorage.setObject('usedSets', $scope.usedSets);
+		LocalStorage.setObject('savedValues', $scope.savedValues);
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
 	        fs.root.getDirectory(
 	            'Buurtmeter',

@@ -2,14 +2,14 @@
   <content has-header='true' has-tabs='true' padding='true'>
     <div>
 		<center><h3>DataSets</h3></center>
-		<ul class='list' ng-repeat='set in datasets'>
+		<ul class='list' ng-repeat='set in allDataSets'>
 			<li class='item item-toggle'>
 				{{ set.name }}
 				<div class='range'>
-   					<input type='range' ng-model='usedRanges[set.name]' min='0' max='10'>
+   					<input type='range' ng-model='savedValues[set.name].range' ng-change='saveRange();' min='0' max='10'/>
  				</div>
 				<label class='toggle toggle-calm'>
-					<input type='checkbox' ng-model='usedSets[set.name]' ng-change='load(set);'/>
+					<input type='checkbox' ng-model='savedValues[set.name].used' ng-change='load(set);'/>
 					<div class='track'>
          				<div class='handle'></div>
        				</div>
@@ -17,10 +17,5 @@
 			</li>
 		</ul>
     </div>
-    <div>
-    	<button class='button button-block button-calm' ng-click='showMeTheNumber();'>
-        	Get Number
-      	</button>
-    </div>
-  </content>
+   </content>
 </view>

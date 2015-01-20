@@ -5,8 +5,10 @@ angular.module('buurtmeter.controllers', ['ionic'])
         defaults: {
             tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
             maxZoom: 20,
-            zoomControlPosition: 'bottomleft',
+            zoomControl: false,
             doubleClickZoom: false,
+            scrollWheelZoom: true,
+            touchZoom: true,
             path: {
                 weight: 10,
                 color: '#800000',
@@ -23,13 +25,40 @@ angular.module('buurtmeter.controllers', ['ionic'])
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
 	
-	navigator.geolocation.getCurrentPosition(function(position){
-		$scope.map.center  = {
-			lat: position.coords.latitude,
-			lng: position.coords.longitude,
-			zoom : 17
-		};
+	$scope.getPhoto = function(){
+	    CameraService.getPicture().then(function(imageURI){
+	      console.log(imageURI);
+	    }, function(err){ console.log(err); });
+	};
+
+	// normal click
+	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
+		addMarker(locationEvent);
 	});
+
+	// double click
+	$scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
+		addMarker(locationEvent);
+		$scope.getPhoto();
+	});
+
+	// right-click
+	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
+		$scope.map.markers = [];
+    	$scope.markerCount = 0;
+    	StorageService.setObject('mapMarkers', $scope.map.markers);
+	});
+
+	$scope.locate = function(){
+		navigator.geolocation.getCurrentPosition(function(position){
+			console.log("Found position!");
+			$scope.map.center  = {
+				lat: position.coords.latitude,
+				lng: position.coords.longitude,
+				zoom : 17
+			};
+		}, function(err){ console.log(err); });
+	};
 
 	/* http://alienryderflex.com/polygon/
 	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. 
@@ -79,24 +108,9 @@ angular.module('buurtmeter.controllers', ['ionic'])
 		return Math.round(x * 100) / 100;
 	}
 
-	$scope.getPhoto = function() {
-		console.log("CameraService called");
-	    CameraService.getPicture().then(function(imageURI) {
-	      console.log(imageURI);
-	    }, function(err) {
-	      console.err(err);
-	    });
-	 };
-
-	// normal click
-	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
+	function addMarker(locationEvent){
 		var lat = locationEvent.leafletEvent.latlng.lat;
 		var lng = locationEvent.leafletEvent.latlng.lng;
-		$scope.map.center = {
-			lat: lat,
-			lng: lng,
-			zoom : 17
-		};
 		var areas = AreaService.all();
 		for(var i = 0; i < areas.length; i++){
 			var geometry = JSON.parse(areas[i].geometry);
@@ -116,18 +130,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
  				break;
 			}
 		}
-	});
-
-	$scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
-		$scope.getPhoto();
-	});
-
-	// right-click
-	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
-		$scope.map.markers = [];
-    	$scope.markerCount = 0;
-    	StorageService.setObject('mapMarkers', $scope.map.markers);
-	});
+	}
 })
 
 .controller('DataController', function($scope, DataSetService, StorageService){

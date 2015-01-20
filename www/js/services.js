@@ -25,7 +25,7 @@ angular.module('buurtmeter.services', [])
   }
 })
 
-.factory('LocalStorage', ['$window', function($window) {
+.factory('StorageService', ['$window', function($window) {
    return {
 	  set: function(key, value) {
 		$window.localStorage[key] = value;
@@ -40,5 +40,22 @@ angular.module('buurtmeter.services', [])
 		return JSON.parse($window.localStorage[key] || '{}');
 	  }
    }
+}])
+
+.factory('CameraService', ['$q', function($q) {
+  return {
+    getPicture: function(options) {
+      var q = $q.defer();
+
+      navigator.camera.getPicture(function(result) {
+        // Do any magic you need
+        q.resolve(result);
+      }, function(err) {
+        q.reject(err);
+      }, options);
+
+      return q.promise;
+    }
+  }
 }]);
 

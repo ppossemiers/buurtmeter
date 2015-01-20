@@ -1,35 +1,35 @@
 angular.module('buurtmeter.controllers', ['ionic'])
 
-.controller('MapController', function($scope, AreaService, LocalStorage){
+.controller('MapController', function($scope, AreaService, StorageService, CameraService){
     var map = {
         defaults: {
             tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
             maxZoom: 20,
             zoomControlPosition: 'bottomleft',
+            doubleClickZoom: false,
             path: {
                 weight: 10,
                 color: '#800000',
                 opacity: 1
             }
         },
-        markers : LocalStorage.getObject('mapMarkers'),
+        markers: StorageService.getObject('mapMarkers'),
         center: {
             lat: 51.221311,
             lng: 4.399160,
             zoom: 17
         }
     };
-	
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
 	
-	// navigator.geolocation.getCurrentPosition(function(position){
-	// 	$scope.map.center  = {
-	// 		lat: position.coords.latitude,
-	// 		lng: position.coords.longitude,
-	// 		zoom : 17
-	// 	};
-	// });
+	navigator.geolocation.getCurrentPosition(function(position){
+		$scope.map.center  = {
+			lat: position.coords.latitude,
+			lng: position.coords.longitude,
+			zoom : 17
+		};
+	});
 
 	/* http://alienryderflex.com/polygon/
 	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. 
@@ -65,7 +65,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
 			if((x1 <= x && x2 > x) || (x1 >= x && x2 < x)){
 				var grad = (point[1] - lastPoint[1]) / dx;
 				var intersectAtLat = lastPoint[1] + ((x - x1) * grad);
-			
+
 				if(intersectAtLat > location[1])
 					isInside = !isInside;
 			}
@@ -74,6 +74,20 @@ angular.module('buurtmeter.controllers', ['ionic'])
 		return isInside;
 	}
 	
+	function getAreaScore(lat, lng){
+		var x = ((lat / 3) + (lng / 10)) * Math.random() * 10;
+		return Math.round(x * 100) / 100;
+	}
+
+	$scope.getPhoto = function() {
+		console.log("CameraService called");
+	    CameraService.getPicture().then(function(imageURI) {
+	      console.log(imageURI);
+	    }, function(err) {
+	      console.err(err);
+	    });
+	 };
+
 	// normal click
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
 		var lat = locationEvent.leafletEvent.latlng.lat;
@@ -88,40 +102,46 @@ angular.module('buurtmeter.controllers', ['ionic'])
 			var geometry = JSON.parse(areas[i].geometry);
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
+				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
+				msg += '<br><div></div>';
 				$scope.map.markers[$scope.markerCount] = {
-		          lat:lat,
-		          lng:lng,
-		          message:areas[i].wijknaam + ' / ' + 'Score : ' + 15,
+		          lat: lat,
+		          lng: lng,
+		          message: msg,
 		          focus: true,
 		          draggable: false
 		        };
-		        LocalStorage.setObject('mapMarkers', $scope.map.markers);
+		        StorageService.setObject('mapMarkers', $scope.map.markers);
 				$scope.markerCount += 1;
  				break;
 			}
 		}
 	});
 
+	$scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
+		$scope.getPhoto();
+	});
+
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
 		$scope.map.markers = [];
     	$scope.markerCount = 0;
-    	LocalStorage.setObject('mapMarkers', $scope.map.markers);
+    	StorageService.setObject('mapMarkers', $scope.map.markers);
 	});
 })
 
-.controller('DataController', function($scope, DataSetService, LocalStorage){
+.controller('DataController', function($scope, DataSetService, StorageService){
 	$scope.allDataSets = DataSetService.all();
-	$scope.savedValues = LocalStorage.getObject('savedValues');
+	$scope.savedValues = StorageService.getObject('savedValues');
 	if(JSON.stringify($scope.savedValues) == '{}'){
 		for(var i = 0; i < $scope.allDataSets.length; i++){
 			$scope.savedValues[$scope.allDataSets[i].name] = {'used':false, 'range':5};
 		}
-		LocalStorage.setObject('savedValues', $scope.savedValues);
+		StorageService.setObject('savedValues', $scope.savedValues);
 	}
 
   	$scope.saveRange = function(){
-    	LocalStorage.setObject('savedValues', $scope.savedValues);
+    	StorageService.setObject('savedValues', $scope.savedValues);
   	}
 
 	$scope.download = function(set){
@@ -168,7 +188,7 @@ angular.module('buurtmeter.controllers', ['ionic'])
 	}
 
 	$scope.load = function(set){
-		LocalStorage.setObject('savedValues', $scope.savedValues);
+		StorageService.setObject('savedValues', $scope.savedValues);
 	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
 	        fs.root.getDirectory(
 	            'Buurtmeter',

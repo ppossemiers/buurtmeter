@@ -27,24 +27,35 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
             zoom: 17
         }
     };
+    var clicks = 0;
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
 
 	$scope.getPhoto = function(){
-	    CameraService.getPicture().then(function(imageURI){
+		var options = { 
+			quality: 40,
+			destinationType: Camera.DestinationType.DATA_URL,
+			sourceType : Camera.PictureSourceType.CAMERA,
+			allowEdit : false,
+			encodingType: Camera.EncodingType.JPEG,
+			correctOrientation: true,
+			targetWidth: 100,
+			targetHeight: 100,
+			saveToPhotoAlbum: true
+		};
+	    CameraService.getPicture(options).then(function(imageURI){
 	      console.log(imageURI);
 	    }, function(err){ console.log(err); });
 	};
 
 	// normal click
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
-		addMarker(locationEvent, false);
+		addMarker(locationEvent, true);
 	});
 
 	// double click
-	$scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
-		addMarker(locationEvent, true);
-	});
+	// $scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
+	// });
 
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
@@ -135,6 +146,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 		          focus: true,
 		          draggable: false
 		        };
+		        previousMarker = $scope.map.markers[$scope.markerCount];
 		        StorageService.setObject('mapMarkers', $scope.map.markers);
 				$scope.markerCount += 1;
  				break;

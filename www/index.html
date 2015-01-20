@@ -23,14 +23,9 @@
     <script src='js/controllers.js'></script>
   </head>
   <body ng-app='buurtmeter' animation='slide-left-right-ios7'>
-    <nav-bar type='bar-calm' 
-             animation='nav-title-slide-ios7' 
-             back-button-type='button-icon' 
-             back-button-icon='ion-ios7-arrow-back'></nav-bar>
-    <nav-view>
-      <nav-buttons side='right'>
-        <button ng-click='locate();' class='button button-icon icon ion-pinpoint'></button>
-      <nav-buttons>
-    </nav-view>
+    <div class='bar bar-header bar-calm' onclick='locate();'>
+      <button class='button button-icon icon ion-pinpoint'></button>
+    </div>
+    <nav-view></nav-view>
   </body>
 </html>

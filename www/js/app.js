@@ -1,6 +1,5 @@
 angular.module('buurtmeter', ['ionic', 'buurtmeter.services', 'buurtmeter.controllers', 'leaflet-directive'])
 
-
 .config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
 
@@ -22,14 +21,12 @@ angular.module('buurtmeter', ['ionic', 'buurtmeter.services', 'buurtmeter.contro
       url: '/data',
       views: {
         'data-tab': {
-		   templateUrl: 'templates/data.html',
-		   controller: 'DataController'
+		      templateUrl: 'templates/data.html',
+		      controller: 'DataController'
         }
       }
     });
 
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/tab/map');
-
 });
-

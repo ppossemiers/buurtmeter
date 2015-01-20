@@ -1,6 +1,11 @@
-angular.module('buurtmeter.controllers', ['ionic'])
+angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
-.controller('MapController', function($scope, AreaService, StorageService, CameraService){
+.controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
+	var center = StorageService.getObject('center');
+	if(JSON.stringify(center) == '{}'){
+		center.lat = 51.221311;
+		center.lng = 4.399160;
+	}
     var map = {
         defaults: {
             tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
@@ -17,17 +22,13 @@ angular.module('buurtmeter.controllers', ['ionic'])
         },
         markers: StorageService.getObject('mapMarkers'),
         center: {
-            lat: 51.221311,
-            lng: 4.399160,
+            lat: center.lat,
+            lng: center.lng,
             zoom: 17
         }
     };
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
-	
-	$scope.test = function(){
-	    alert("OK");
-	};
 
 	$scope.getPhoto = function(){
 	    CameraService.getPicture().then(function(imageURI){
@@ -54,12 +55,15 @@ angular.module('buurtmeter.controllers', ['ionic'])
 
 	locate = function(){
 		navigator.geolocation.getCurrentPosition(function(position){
-			console.log("Found position!");
-			$scope.map.center  = {
+			var center = {
 				lat: position.coords.latitude,
 				lng: position.coords.longitude,
 				zoom : 17
 			};
+			$timeout(function () {
+        		$scope.map.center = center;
+    		}, 1000);
+			StorageService.setObject('center', center);
 		}, function(err){ console.log(err); });
 	};
 

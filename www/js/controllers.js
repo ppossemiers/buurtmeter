@@ -53,7 +53,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
 	// normal click
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
-		addMarker(locationEvent);
+		setTimeout(addMarker(locationEvent), 1000);
 	});
 
 	// double click
@@ -73,9 +73,9 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 				lng: position.coords.longitude,
 				zoom : 17
 			};
-			$timeout(function () {
+			$timeout(function(){
         		$scope.map.center = center;
-    		}, 1000);
+    		}, 3000);
 			StorageService.setObject('center', center);
 		}, function(err){ console.log(err); });
 	};
@@ -137,37 +137,33 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
+				var marker = {
+			        lat: lat,
+			        lng: lng,
+			        message: msg,
+					focus: true,
+					draggable: false
+				};
+				updateMap = function(){
+			        $scope.map.markers[$scope.markerCount] = marker;
+			        $scope.markerCount += 1;
+			        StorageService.setObject('mapMarkers', $scope.map.markers);
+				};
 				CameraService.getPicture(cameraOptions).then(function(imageURI){
 			    	var img = document.createElement('img');
+			    	var canvas = document.createElement('canvas');
+			        var ctx = canvas.getContext('2d');
+					canvas.width = 100;
+			        canvas.height = 100;
 			        img.onload = function(){        
-			            var canvas = document.createElement('canvas');
-			            var ctx = canvas.getContext('2d');
-						canvas.width = 100;
-			            canvas.height = 100;
 			            ctx.drawImage(this, 0, 0, 100, 100);
-			            var dataURI = canvas.toDataURL();
-			            msg += '<br><div><center><img src=' + dataURI + '></center>'
-			     		$scope.map.markers[$scope.markerCount] = {
-			           		lat: lat,
-			           		lng: lng,
-			           		message: msg,
-						    focus: true,
-						    draggable: false
-						};
-						StorageService.setObject('mapMarkers', $scope.map.markers);
-						$scope.markerCount += 1;
+			     		marker.message += '<br><div><center><img src=' + canvas.toDataURL() + '></center>';
+			     		// Dunno why, but timeout necessary for update of map
+						$timeout(updateMap(), 500);
 			        };
-        			img.src = imageURI;
+			        img.src = imageURI;
 	    		}, function(err){
-	    			$scope.map.markers[$scope.markerCount] = {
-		           		lat: lat,
-		           		lng: lng,
-		           		message: msg,
-					    focus: true,
-					    draggable: false
-					};
-					StorageService.setObject('mapMarkers', $scope.map.markers);
-					$scope.markerCount += 1;
+	    			updateMap();
 	    		});
 	    		break;
 			}
@@ -216,8 +212,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 	                            function(error){
 	                                alert(error.source);
 	                            },
-	                            false,
-	                            null
+	                            false, null
 	                        );
 	                    },
 	                    function(){

@@ -7,13 +7,13 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 .controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
 
 	var cameraOptions = {
-		destinationType : 0, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
-		sourceType : 1, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
+		destinationType : 1, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
+		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
 		//quality: 90, // less than 50 to avoid memory problems for older iPhones
 		encodingType: 1, // 0 : jpeg, 1 : png
 		correctOrientation: true, // rotate the image to correct for the orientation of the device during capture
-		targetWidth: 100,
-		targetHeight: 100,
+		//targetWidth: 100,
+		//targetHeight: 100,
 		saveToPhotoAlbum: true
 	};
 
@@ -25,8 +25,10 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
     var map = {
         defaults: {
-        	tileLayer: 'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', // mapquest
-            //tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', // openstreetmap
+        	// MapQuest
+        	tileLayer: 'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+        	// OpenStreetMap
+            //tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
             maxZoom: 20,
             zoomControl: false,
             doubleClickZoom: false,
@@ -135,17 +137,27 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
-				CameraService.getPicture(cameraOptions).then(function(imageData){
-			    	msg += '<br><div><center><img src=data:image/png;base64,' + imageData + '></center>'
-			     	$scope.map.markers[$scope.markerCount] = {
-		           		lat: lat,
-		           		lng: lng,
-		           		message: msg,
-					    focus: true,
-					    draggable: false
-					};
-					StorageService.setObject('mapMarkers', $scope.map.markers);
-					$scope.markerCount += 1;
+				CameraService.getPicture(cameraOptions).then(function(imageURI){
+			    	var img = document.createElement('img');
+			        img.onload = function(){        
+			            var canvas = document.createElement('canvas');
+			            var ctx = canvas.getContext('2d');
+						canvas.width = 100;
+			            canvas.height = 100;
+			            ctx.drawImage(this, 0, 0, 100, 100);
+			            var dataURI = canvas.toDataURL();
+			            msg += '<br><div><center><img src=' + dataURI + '></center>'
+			     		$scope.map.markers[$scope.markerCount] = {
+			           		lat: lat,
+			           		lng: lng,
+			           		message: msg,
+						    focus: true,
+						    draggable: false
+						};
+						StorageService.setObject('mapMarkers', $scope.map.markers);
+						$scope.markerCount += 1;
+			        };
+        			img.src = imageURI;
 	    		}, function(err){
 	    			$scope.map.markers[$scope.markerCount] = {
 		           		lat: lat,

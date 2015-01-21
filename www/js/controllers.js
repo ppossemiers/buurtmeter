@@ -1,7 +1,6 @@
 // TODO :
 // 1/ Formula areas
 // 2/ Splash screen
-// 3/ Showing of pictures
 
 angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
@@ -137,7 +136,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			if(inPolygon([lng, lat], coordinates)){
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
 				CameraService.getPicture(cameraOptions).then(function(imageData){
-			    	msg += '<div><img src=data:image/png;base64,' + imageData + '>'
+			    	msg += '<br><div><center><img src=data:image/png;base64,' + imageData + '></center>'
 			     	$scope.map.markers[$scope.markerCount] = {
 		           		lat: lat,
 		           		lng: lng,

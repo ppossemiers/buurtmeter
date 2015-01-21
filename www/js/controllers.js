@@ -8,13 +8,13 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
 	var cameraOptions = {
 		destinationType : 0, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
-		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
-		quality: 40, // less than 50 to avoid memory problems for older iPhones
+		sourceType : 1, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
+		//quality: 90, // less than 50 to avoid memory problems for older iPhones
 		encodingType: 1, // 0 : jpeg, 1 : png
 		correctOrientation: true, // rotate the image to correct for the orientation of the device during capture
 		targetWidth: 100,
 		targetHeight: 100,
-		//saveToPhotoAlbum: true
+		saveToPhotoAlbum: true
 	};
 
 	var center = StorageService.getObject('center');
@@ -146,7 +146,17 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 					};
 					StorageService.setObject('mapMarkers', $scope.map.markers);
 					$scope.markerCount += 1;
-	    		}, function(err){ });
+	    		}, function(err){
+	    			$scope.map.markers[$scope.markerCount] = {
+		           		lat: lat,
+		           		lng: lng,
+		           		message: msg,
+					    focus: true,
+					    draggable: false
+					};
+					StorageService.setObject('mapMarkers', $scope.map.markers);
+					$scope.markerCount += 1;
+	    		});
 	    		break;
 			}
 		}

@@ -1,14 +1,33 @@
+// TODO :
+// 1/ Formula areas
+// 2/ Splash screen
+// 3/ Showing of pictures
+
 angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
 .controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
+
+	var cameraOptions = {
+		destinationType : 0, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
+		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
+		quality: 40, // less than 50 to avoid memory problems for older iPhones
+		encodingType: 1, // 0 : jpeg, 1 : png
+		correctOrientation: true, // rotate the image to correct for the orientation of the device during capture
+		targetWidth: 100,
+		targetHeight: 100,
+		//saveToPhotoAlbum: true
+	};
+
 	var center = StorageService.getObject('center');
 	if(JSON.stringify(center) == '{}'){
 		center.lat = 51.221311;
 		center.lng = 4.399160;
 	}
+
     var map = {
         defaults: {
-            tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+        	tileLayer: 'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', // mapquest
+            //tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', // openstreetmap
             maxZoom: 20,
             zoomControl: false,
             doubleClickZoom: false,
@@ -27,35 +46,17 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
             zoom: 17
         }
     };
-    var clicks = 0;
+
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
 
-	$scope.getPhoto = function(){
-		var options = { 
-			quality: 40,
-			destinationType: Camera.DestinationType.DATA_URL,
-			sourceType : Camera.PictureSourceType.CAMERA,
-			allowEdit : false,
-			encodingType: Camera.EncodingType.JPEG,
-			correctOrientation: true,
-			targetWidth: 100,
-			targetHeight: 100,
-			saveToPhotoAlbum: true
-		};
-	    CameraService.getPicture(options).then(function(imageURI){
-	      console.log(imageURI);
-	    }, function(err){ console.log(err); });
-	};
-
 	// normal click
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
-		addMarker(locationEvent, true);
+		addMarker(locationEvent);
 	});
 
 	// double click
-	// $scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){
-	// });
+	// $scope.$on('leafletDirectiveMap.dblclick', function(event, locationEvent){ });
 
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
@@ -94,16 +95,16 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			var dx = x2 - x1;
 			
 			if(Math.abs(dx) > 180.0){
-				if (x > 0) {
-					while (x1 < 0)
+				if(x > 0){
+					while(x1 < 0)
 						x1 += 360;
-					while (x2 < 0)
+					while(x2 < 0)
 						x2 += 360;
 				}
 				else{
-					while (x1 > 0)
+					while(x1 > 0)
 						x1 -= 360;
-					while (x2 > 0)
+					while(x2 > 0)
 						x2 -= 360;
 				}
 				dx = x2 - x1;
@@ -126,7 +127,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 		return Math.round(x * 100) / 100;
 	};
 
-	addMarker = function(locationEvent, photo){
+	addMarker = function(locationEvent){
 		var lat = locationEvent.leafletEvent.latlng.lat;
 		var lng = locationEvent.leafletEvent.latlng.lng;
 		var areas = AreaService.all();
@@ -135,21 +136,19 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			var coordinates = geometry.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
-				msg += '<br><div></div>';
-				if(photo){
-					$scope.getPhoto();
-				}
-				$scope.map.markers[$scope.markerCount] = {
-		          lat: lat,
-		          lng: lng,
-		          message: msg,
-		          focus: true,
-		          draggable: false
-		        };
-		        previousMarker = $scope.map.markers[$scope.markerCount];
-		        StorageService.setObject('mapMarkers', $scope.map.markers);
-				$scope.markerCount += 1;
- 				break;
+				CameraService.getPicture(cameraOptions).then(function(imageData){
+			    	msg += '<div><img src=data:image/png;base64,' + imageData + '>'
+			     	$scope.map.markers[$scope.markerCount] = {
+		           		lat: lat,
+		           		lng: lng,
+		           		message: msg,
+					    focus: true,
+					    draggable: false
+					};
+					StorageService.setObject('mapMarkers', $scope.map.markers);
+					$scope.markerCount += 1;
+	    		}, function(err){ });
+	    		break;
 			}
 		}
 	};

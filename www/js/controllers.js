@@ -1,14 +1,10 @@
-// TODO :
-// 1/ Formula areas
-// 2/ Splash screen
-
 angular.module('buurtmeter.controllers', ['leaflet-directive'])
 
 .controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
 
 	var cameraOptions = {
 		destinationType : 1, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
-		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
+		sourceType : 1, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
 		//quality: 90, // less than 50 to avoid memory problems for older iPhones
 		encodingType: 1, // 0 : jpeg, 1 : png
 		correctOrientation: true, // rotate the image to correct for the orientation of the device during capture
@@ -18,6 +14,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 	};
 
 	var center = StorageService.getObject('center');
+	// defaults to 'grote markt'
 	if(JSON.stringify(center) == '{}'){
 		center.lat = 51.221311;
 		center.lng = 4.399160;
@@ -149,22 +146,27 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			        $scope.markerCount += 1;
 			        StorageService.setObject('mapMarkers', $scope.map.markers);
 				};
-				CameraService.getPicture(cameraOptions).then(function(imageURI){
-			    	var img = document.createElement('img');
-			    	var canvas = document.createElement('canvas');
-			        var ctx = canvas.getContext('2d');
-					canvas.width = 100;
-			        canvas.height = 100;
-			        img.onload = function(){        
-			            ctx.drawImage(this, 0, 0, 100, 100);
-			     		marker.message += '<br><div><center><img src=' + canvas.toDataURL() + '></center>';
-			     		// Dunno why, but timeout necessary for update of map
-						$timeout(updateMap(), 500);
-			        };
-			        img.src = imageURI;
-	    		}, function(err){
-	    			updateMap();
-	    		});
+				try {
+					CameraService.getPicture(cameraOptions).then(function(imageURI){
+				    	var img = document.createElement('img');
+				    	var canvas = document.createElement('canvas');
+				        var ctx = canvas.getContext('2d');
+						canvas.width = 100;
+				        canvas.height = 100;
+				        img.onload = function(){        
+				            ctx.drawImage(this, 0, 0, 100, 100);
+				     		marker.message += '<br><div><center><img src=' + canvas.toDataURL() + '></center>';
+				     		// Dunno why, but timeout necessary for update of map
+							$timeout(updateMap(), 500);
+				        };
+				        img.src = imageURI;
+		    		}, function(err){
+		    			updateMap();
+		    		});
+				}
+				catch(err) {
+    				updateMap();
+				}
 	    		break;
 			}
 		}

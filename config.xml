@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<widget id="com.ionicframework.starter" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>Buurtmeter</name>
+  <description>
+        Buurtmeter voor de app van 't stad
+    </description>
+  <author email="philippe.possemiers@ap.be">
+        Philippe Possemiers
+    </author>
+  <content src="index.html"/>
+  <access origin="*"/>
+  <preference name="fullscreen" value="true"/>
+  <preference name="webviewbounce" value="false"/>
+  <preference name="UIWebViewBounce" value="false"/>
+  <preference name="DisallowOverscroll" value="true"/>
+  <platform name="ios">
+    <icon src="resources/icon.png"/>
+    <splash src="resources/ios/splash/Default-568h@2x~iphone.png" width="640" height="1136"/>
+    <splash src="resources/ios/splash/Default-667h.png" width="750" height="1334"/>
+    <splash src="resources/ios/splash/Default-736h.png" width="1242" height="2208"/>
+    <splash src="resources/ios/splash/Default-Landscape-736h.png" width="2208" height="1242"/>
+    <splash src="resources/ios/splash/Default-Landscape@2x~ipad.png" width="2048" height="1536"/>
+    <splash src="resources/ios/splash/Default-Landscape~ipad.png" width="1024" height="768"/>
+    <splash src="resources/ios/splash/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
+    <splash src="resources/ios/splash/Default-Portrait~ipad.png" width="768" height="1024"/>
+    <splash src="resources/ios/splash/Default@2x~iphone.png" width="640" height="960"/>
+    <splash src="resources/ios/splash/Default~iphone.png" width="320" height="480"/>
+  </platform>
+</widget>

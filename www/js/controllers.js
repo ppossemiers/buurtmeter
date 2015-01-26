@@ -1,10 +1,10 @@
-angular.module('buurtmeter.controllers', ['leaflet-directive'])
+angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 
 .controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
 
 	var cameraOptions = {
 		destinationType : 1, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
-		sourceType : 1, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
+		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
 		//quality: 90, // less than 50 to avoid memory problems for older iPhones
 		encodingType: 1, // 0 : jpeg, 1 : png
 		correctOrientation: true, // rotate the image to correct for the orientation of the device during capture
@@ -64,6 +64,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 	});
 
 	locate = function(){
+		document.getElementById('title').innerHTML = '<h4>Even geduld...</h4>';
 		navigator.geolocation.getCurrentPosition(function(position){
 			var center = {
 				lat: position.coords.latitude,
@@ -72,6 +73,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			};
 			$timeout(function(){
         		$scope.map.center = center;
+        		document.getElementById('title').innerHTML = '';
     		}, 3000);
 			StorageService.setObject('center', center);
 		}, function(err){ console.log(err); });
@@ -146,7 +148,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 			        $scope.markerCount += 1;
 			        StorageService.setObject('mapMarkers', $scope.map.markers);
 				};
-				try {
+				if(ionic.Platform.isCordova()){
 					CameraService.getPicture(cameraOptions).then(function(imageURI){
 				    	var img = document.createElement('img');
 				    	var canvas = document.createElement('canvas');
@@ -164,8 +166,8 @@ angular.module('buurtmeter.controllers', ['leaflet-directive'])
 		    			updateMap();
 		    		});
 				}
-				catch(err) {
-    				updateMap();
+				else{
+					updateMap();
 				}
 	    		break;
 			}

@@ -63,8 +63,12 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
     	StorageService.setObject('mapMarkers', $scope.map.markers);
 	});
 
+	setTitle = function(txt){
+		document.getElementById('title').innerHTML = '<h1 class="title">' + txt + '</h1>';
+	};
+
 	locate = function(){
-		document.getElementById('title').innerHTML = '<h4>Even geduld...</h4>';
+		setTitle('Even geduld...');
 		navigator.geolocation.getCurrentPosition(function(position){
 			var center = {
 				lat: position.coords.latitude,
@@ -73,7 +77,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			};
 			$timeout(function(){
         		$scope.map.center = center;
-        		document.getElementById('title').innerHTML = '';
+        		setTitle('');
     		}, 3000);
 			StorageService.setObject('center', center);
 		}, function(err){ console.log(err); });
@@ -180,7 +184,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	$scope.savedValues = StorageService.getObject('savedValues');
 	if(JSON.stringify($scope.savedValues) == '{}'){
 		for(var i = 0; i < $scope.allDataSets.length; i++){
-			$scope.savedValues[$scope.allDataSets[i].name] = {'used':false, 'range':5};
+			$scope.savedValues[$scope.allDataSets[i].resource] = {'used':false, 'range':5};
 		}
 		StorageService.setObject('savedValues', $scope.savedValues);
 	}
@@ -198,7 +202,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	            },
 	            function(dirEntry) {
 	                dirEntry.getFile(
-	                    set.name + '.json',
+	                    set.resource + '.json',
 	                    {
 	                        create: true,
 	                        exclusive: false
@@ -241,7 +245,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	            },
 	            function(dirEntry){
 	                dirEntry.getFile(
-	                    set.name + '.json',
+	                    set.resource + '.json',
 	                    {
 	                        create: false,
 	                        exclusive: false

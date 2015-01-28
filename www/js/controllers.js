@@ -191,83 +191,28 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 
   	$scope.saveRange = function(){
     	StorageService.setObject('savedValues', $scope.savedValues);
-  	}
-
-	$scope.download = function(set){
-	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
-	        fs.root.getDirectory(
-	            'Buurtmeter',
-	            {
-	                create: true
-	            },
-	            function(dirEntry) {
-	                dirEntry.getFile(
-	                    set.resource + '.json',
-	                    {
-	                        create: true,
-	                        exclusive: false
-	                    },
-	                    function gotFileEntry(fe){
-	                        var p = fe.toURL();
-	                        fe.remove();
-	                        ft = new FileTransfer();
-	                        ft.download(
-	                            encodeURI(set.url),
-	                            p,
-	                            function(entry){
-	                                //alert(entry.toURL());
-	                            },
-	                            function(error){
-	                                alert(error.source);
-	                            },
-	                            false, null
-	                        );
-	                    },
-	                    function(){
-	                        alert('Fout bij ophalen dataset');
-	                    }
-	                );
-	            }
-	        );
-	    },
-	    function(){
-	        alert('Fout bij ophalen filesysteem');
-	    });
-	}
+  	};
 
 	$scope.load = function(set){
 		StorageService.setObject('savedValues', $scope.savedValues);
-	    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs){
-	        fs.root.getDirectory(
-	            'Buurtmeter',
-	            {
-	                create: true
-	            },
-	            function(dirEntry){
-	                dirEntry.getFile(
-	                    set.resource + '.json',
-	                    {
-	                        create: false,
-	                        exclusive: false
-	                    },
-	                    function gotFileEntry(fe){
-	                        fe.file(function(file){
-								var reader = new FileReader();
-								reader.onloadend = function(e){
-									//alert(this.result);
-								}
-								reader.readAsText(file);
-							});
-	                    },
-	                    function(error){
-	                        $scope.download(set);
-	                    }
-	                );
-	            }
-	        );
-	    },
-	    function(){
-	        alert('Fout bij ophalen filesysteem');
-	    });
-	}
+		if($scope.savedValues[set.resource].used){
+			var fileStore = cordova.file.dataDirectory;
+			window.resolveLocalFileSystemURL(fileStore + set.resource + '.json', 
+				function(){
+					// already downloaded
+				}, 
+				function(){
+					var fileTransfer = new FileTransfer();
+					fileTransfer.download('http://datasets.antwerpen.be/v4/gis/' + set.resource + '.json', fileStore + set.resource + '.json', 
+					 	function(entry){
+					 		// download successful
+					 	}, 
+						function(err){
+					 		alert('Fout bij het downloaden van de dataSet');
+					});
+				});
+		}
+	};
+
+	locate = function(){};
 });

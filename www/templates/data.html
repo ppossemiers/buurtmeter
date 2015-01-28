@@ -3,12 +3,14 @@
     <div>
 		<center><h3>DataSets</h3></center>
 		<ul class='list' ng-repeat='set in allDataSets'>
-			<li class='item item-toggle'>
+			<!--li class='item item-toggle'-->
+			<li class='item item-checkbox'>
 				{{ set.resource }}
 				<div class='range'>
    					<input type='range' ng-model='savedValues[set.resource].range' ng-change='saveRange();' min='0' max='10'/>
  				</div>
-				<label class='toggle toggle-calm'>
+				<!--label class='toggle toggle-calm'-->
+				<label class='checkbox'>
 					<input type='checkbox' ng-model='savedValues[set.resource].used' ng-change='load(set);'/>
 					<div class='track'>
          				<div class='handle'></div>

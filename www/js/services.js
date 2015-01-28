@@ -23,7 +23,6 @@ angular.module('buurtmeter.services', [])
       		currentSets.push(dataSets[i]);
 		}
       }
-      console.log(currentSets.length);
       return currentSets;
     },
     get: function(name){

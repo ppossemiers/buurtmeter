@@ -143,7 +143,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 							}
 						}
 						totalScore += tmpScore * ($scope.myDataSets[key].range / 10);
-						totalResult[key] = {'name':key, 'score':tmpScore * ($scope.myDataSets[key].range / 10)};
+						totalResult[key] = {'name':$scope.myDataSets[key].type, 'score':tmpScore * ($scope.myDataSets[key].range / 10)};
 					}
 				}
 				catch(err){

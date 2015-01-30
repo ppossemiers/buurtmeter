@@ -1,7 +1,6 @@
 angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 
 .controller('MapController', function($scope, $timeout, AreaService, StorageService, CameraService){
-
 	var cameraOptions = {
 		destinationType : 1, // 0 : base64-encoded, 1 : image file URI, 2 : image native URI
 		sourceType : 2, // 0 : PHOTOLIBRARY, 1 : CAMERA, 2 : SAVEDPHOTOALBUM
@@ -47,6 +46,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 
 	$scope.map = map;
 	$scope.markerCount = $scope.map.markers.length;
+	$scope.myDataSets = StorageService.getObject('myDataSets');
 
 	// normal click
 	$scope.$on('leafletDirectiveMap.click', function(event, locationEvent){
@@ -63,12 +63,12 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
     	StorageService.setObject('mapMarkers', $scope.map.markers);
 	});
 
-	setTitle = function(txt){
-		document.getElementById('title').innerHTML = '<h1 class="title">' + txt + '</h1>';
+	setTitle = function(msg){
+		document.getElementById('title').innerHTML = '<h1 class="title">' + msg + '</h1>';
 	};
 
 	locate = function(){
-		setTitle('Even geduld...');
+		setTitle('Even geduld, positie wordt bepaald...');
 		navigator.geolocation.getCurrentPosition(function(position){
 			var center = {
 				lat: position.coords.latitude,
@@ -127,8 +127,29 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	};
 	
 	getAreaScore = function(lat, lng){
-		var x = ((lat / 3) + (lng / 10)) * Math.random() * 10;
-		return Math.round(x * 100) / 100;
+		var totalScore = 0;
+		for(var key in $scope.myDataSets){
+  			if($scope.myDataSets.hasOwnProperty(key) && $scope.myDataSets[key].used){
+   				var tmpScore = 0;
+  				try{
+					var set = JSON.parse(StorageService.get(key + '.json'));
+					var geo = JSON.parse(set.data[0].geometry);
+					if(geo.type == 'Polygon'){
+						var polygons = geo.coordinates;
+						for(var i = 0; i < polygons.length; i++){
+							if(inPolygon([lng, lat], polygons[i])){
+								tmpScore += 1;
+							}
+						}
+						totalScore += tmpScore * ($scope.myDataSets[key].range / 10);
+					}
+				}
+				catch(err){
+					console.log(err);
+				}
+			}
+		}
+		return totalScore;
 	};
 
 	addMarker = function(locationEvent){
@@ -136,8 +157,8 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 		var lng = locationEvent.leafletEvent.latlng.lng;
 		var areas = AreaService.all();
 		for(var i = 0; i < areas.length; i++){
-			var geometry = JSON.parse(areas[i].geometry);
-			var coordinates = geometry.coordinates[0];
+			var geo = JSON.parse(areas[i].geometry);
+			var coordinates = geo.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
 				var marker = {
@@ -170,6 +191,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 		    			updateMap();
 		    		});
 				}
+				// desktop browser
 				else{
 					updateMap();
 				}
@@ -179,40 +201,46 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	};
 })
 
-.controller('DataController', function($scope, DataSetService, StorageService){
-	$scope.allDataSets = DataSetService.all();
-	$scope.savedValues = StorageService.getObject('savedValues');
-	if(JSON.stringify($scope.savedValues) == '{}'){
-		for(var i = 0; i < $scope.allDataSets.length; i++){
-			$scope.savedValues[$scope.allDataSets[i].resource] = {'used':false, 'range':5};
-		}
-		StorageService.setObject('savedValues', $scope.savedValues);
-	}
-
-  	$scope.saveRange = function(){
-    	StorageService.setObject('savedValues', $scope.savedValues);
-  	};
-
-	$scope.load = function(set){
-		StorageService.setObject('savedValues', $scope.savedValues);
-		if($scope.savedValues[set.resource].used){
-			var fileStore = cordova.file.dataDirectory;
-			window.resolveLocalFileSystemURL(fileStore + set.resource + '.json', 
-				function(){
-					// already downloaded
-				}, 
-				function(){
-					var fileTransfer = new FileTransfer();
-					fileTransfer.download('http://datasets.antwerpen.be/v4/gis/' + set.resource + '.json', fileStore + set.resource + '.json', 
-					 	function(entry){
-					 		// download successful
-					 	}, 
-						function(err){
-					 		alert('Fout bij het downloaden van de dataSet');
-					});
-				});
-		}
+.controller('DataController', function($scope, $http, DataSetService, InitDataSetService, StorageService){
+	setTitle = function(msg){
+		document.getElementById('title').innerHTML = '<h1 class="title">' + msg + '</h1>';
 	};
 
 	locate = function(){};
+
+	$scope.allDataSets = StorageService.get('allDataSets');
+	if($scope.allDataSets == undefined ){
+		setTitle('Even geduld, de datasets worden opgehaald...');
+		InitDataSetService.get().then(function(sets){
+			console.log(sets);
+			//StorageService.set('allDataSets', sets);
+			setTitle('');
+		});
+	}
+	$scope.allDataSets = DataSetService.all();
+	$scope.myDataSets = StorageService.getObject('myDataSets');
+	if(JSON.stringify($scope.myDataSets) == '{}'){
+		for(var i = 0; i < $scope.allDataSets.length; i++){
+			$scope.myDataSets[$scope.allDataSets[i].resource] = {'used':false, 'range':5};
+		}
+		StorageService.setObject('myDataSets', $scope.myDataSets);
+	}
+
+  	$scope.saveRange = function(){
+    	StorageService.setObject('myDataSets', $scope.myDataSets);
+  	};
+
+	$scope.load = function(set){
+		StorageService.setObject('myDataSets', $scope.myDataSets);
+		if($scope.myDataSets[set.resource].used){
+			if(!StorageService.get(set.resource + '.json')){
+				$http.get('http://datasets.antwerpen.be/v4/gis/' + set.resource + '.json')
+				    .success(function(data) {
+				       StorageService.set(set.resource + '.json', JSON.stringify(data));
+				    });
+			}
+		}
+	};
+
+	
 });

@@ -31,6 +31,39 @@ angular.module('buurtmeter.services', [])
   }
 })
 
+.factory('InitDataSetService', ['$http', '$q', function($http, $q){
+	return{
+		get: function(){
+			var q = $q.defer();
+			var sets = [];
+			$http.get('http://datasets.antwerpen.be/v1/opendata/statistieken.json').
+			  success(function(data, status, headers, config){
+			  	var stats = data.statistieken;
+			  	for(var i = 0; i < stats.length; i++){
+				    if(stats[i].package == 'geografie' && stats[i].year == '2015'){
+				    	$http.get('http://datasets.antwerpen.be/v4/gis/' + stats[i].resource + '.json').
+			  				success(function(data, status, headers, config){
+					    		try{
+								  	if(data.data[0].geometry){
+								  		var geo = JSON.parse(data.data[0].geometry);
+								  		if(geo.type === 'Polygon'){
+								  			//console.log(set.data[0].thema + '/' + set.data[0].type + '/' + set.data[0].subtype);
+								  			var fileName = config.url.substr(config.url.lastIndexOf('/') + 1);
+											sets.push(fileName.substr(0, fileName.length - 5));
+								  		}
+								  	}
+								}
+								catch(e){}
+			  				});
+					}
+				}
+				q.resolve(sets);
+			  });
+			  return q.promise;
+		}
+	}
+}])
+
 .factory('StorageService', ['$window', function($window){
    return{
 	  set: function(key, value){

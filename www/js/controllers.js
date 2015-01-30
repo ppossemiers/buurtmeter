@@ -125,8 +125,9 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 		}
 		return isInside;
 	};
-	
+
 	getAreaScore = function(lat, lng){
+		var totalResult = {};
 		var totalScore = 0;
 		for(var key in $scope.myDataSets){
   			if($scope.myDataSets.hasOwnProperty(key) && $scope.myDataSets[key].used){
@@ -142,6 +143,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 							}
 						}
 						totalScore += tmpScore * ($scope.myDataSets[key].range / 10);
+						totalResult[key] = {'name':key, 'score':tmpScore * ($scope.myDataSets[key].range / 10)};
 					}
 				}
 				catch(err){
@@ -149,7 +151,8 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				}
 			}
 		}
-		return totalScore;
+		totalResult.total = totalScore;
+		return totalResult;
 	};
 
 	addMarker = function(locationEvent){
@@ -160,7 +163,16 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			var geo = JSON.parse(areas[i].geometry);
 			var coordinates = geo.coordinates[0];
 			if(inPolygon([lng, lat], coordinates)){
-				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + getAreaScore(lat, lng) + '</div>';
+				var scores = getAreaScore(lat, lng);
+				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + scores.total + '</div>';
+				if(scores.total > 0){
+					msg += '<ul>';
+					for(var score in scores){
+						if(score != 'total'){
+							msg += '<li>' + scores[score].name + ' : ' + scores[score].score;
+						}
+					}
+				}
 				var marker = {
 			        lat: lat,
 			        lng: lng,
@@ -194,7 +206,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				// desktop browser
 				else{
 					updateMap();
-					console.log(StorageService.getObject('mapMarkers'));
+					//console.log(StorageService.getObject('mapMarkers'));
 				}
 	    		break;
 			}

@@ -2,10 +2,10 @@
   <content has-header='true' has-tabs='true' padding='true'>
     <div>
 		<center><h3>DataSets</h3></center>
-		<ul class='list' ng-repeat='set in allDataSets'>
+		<ul class='list' ng-repeat='set in myDataSets'>
 			<!--li class='item item-toggle'-->
 			<li class='item item-checkbox'>
-				{{ set.resource }}
+				{{ set.type }}
 				<div class='range'>
    					<input type='range' ng-model='myDataSets[set.resource].range' ng-change='saveRange();' min='0' max='10'/>
  				</div>

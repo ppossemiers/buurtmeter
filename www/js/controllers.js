@@ -183,7 +183,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				        img.onload = function(){        
 				            ctx.drawImage(this, 0, 0, 100, 100);
 				     		marker.message += '<br><div><center><img src=' + canvas.toDataURL() + '></center>';
-				     		// Dunno why, but timeout necessary for update of map
+				     		// dunno why, but timeout necessary for update of map
 							$timeout(updateMap(), 500);
 				        };
 				        img.src = imageURI;
@@ -194,6 +194,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				// desktop browser
 				else{
 					updateMap();
+					console.log(StorageService.getObject('mapMarkers'));
 				}
 	    		break;
 			}
@@ -201,29 +202,21 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	};
 })
 
-.controller('DataController', function($scope, $http, DataSetService, InitDataSetService, StorageService){
+.controller('DataController', function($scope, $http, DataSetService, StorageService){
 	setTitle = function(msg){
 		document.getElementById('title').innerHTML = '<h1 class="title">' + msg + '</h1>';
 	};
 
 	locate = function(){};
 
-	$scope.allDataSets = StorageService.get('allDataSets');
-	if($scope.allDataSets == undefined ){
-		setTitle('Even geduld, de datasets worden opgehaald...');
-		InitDataSetService.get().then(function(sets){
-			console.log(sets);
-			//StorageService.set('allDataSets', sets);
-			setTitle('');
-		});
-	}
-	$scope.allDataSets = DataSetService.all();
 	$scope.myDataSets = StorageService.getObject('myDataSets');
 	if(JSON.stringify($scope.myDataSets) == '{}'){
-		for(var i = 0; i < $scope.allDataSets.length; i++){
-			$scope.myDataSets[$scope.allDataSets[i].resource] = {'used':false, 'range':5};
-		}
-		StorageService.setObject('myDataSets', $scope.myDataSets);
+		setTitle('Even geduld, datasets worden opgehaald...');
+		DataSetService.get().then(function(sets){
+			$scope.myDataSets = sets;
+			StorageService.setObject('myDataSets', $scope.myDataSets);
+			setTitle('');
+		});
 	}
 
   	$scope.saveRange = function(){

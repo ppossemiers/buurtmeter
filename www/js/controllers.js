@@ -214,7 +214,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	};
 })
 
-.controller('DataController', function($scope, $http, DataSetService, StorageService){
+.controller('DataController', function($scope, $timeout, $http, DataSetService, StorageService){
 	setTitle = function(msg){
 		document.getElementById('title').innerHTML = '<h1 class="title">' + msg + '</h1>';
 	};
@@ -230,6 +230,12 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			StorageService.setObject('myDataSets', $scope.myDataSets);
 			setTitle('');
 		});
+	}
+	else{ 
+		$timeout(function(){
+			document.getElementById('dsTitle').innerHTML = '<h3>DatSets(' + Object.keys($scope.myDataSets).length + ')</h3>';
+		}
+		, 100);
 	}
 
   	$scope.saveRange = function(){

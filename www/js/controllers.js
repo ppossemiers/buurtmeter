@@ -225,6 +225,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	if(JSON.stringify($scope.myDataSets) == '{}'){
 		setTitle('Even geduld, datasets worden opgehaald...');
 		DataSetService.get().then(function(sets){
+			document.getElementById('dsTitle').innerHTML = '<h3>DatSets(' + Object.keys(sets).length + ')</h3>';
 			$scope.myDataSets = sets;
 			StorageService.setObject('myDataSets', $scope.myDataSets);
 			setTitle('');

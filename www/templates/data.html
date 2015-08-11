@@ -7,11 +7,11 @@
 			<li class='item item-checkbox'>
 				{{ set.type }}
 				<div class='range'>
-   					<input type='range' ng-model='myDataSets[set.resource].range' ng-change='saveRange();' min='0' max='10'/>
+   					<input type='range' ng-model='set.range' ng-change='saveRange();' min='0' max='10'/>
  				</div>
 				<!--label class='toggle toggle-calm'-->
 				<label class='checkbox'>
-					<input type='checkbox' ng-model='myDataSets[set.resource].used' ng-change='load(set);'/>
+					<input type='checkbox' ng-model='set.used' ng-change='load(set);'/>
 					<div class='track'>
          				<div class='handle'></div>
        				</div>

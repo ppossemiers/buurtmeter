@@ -24,7 +24,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
         	// MapQuest
         	tileLayer: 'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
         	// OpenStreetMap
-            //tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+        	tileLayer: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
             maxZoom: 20,
             zoomControl: false,
             doubleClickZoom: false,
@@ -253,6 +253,4 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			}
 		}
 	};
-
-	
 });

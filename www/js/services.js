@@ -21,12 +21,12 @@ angular.module('buurtmeter.services', [])
 			  success(function(data, status, headers, config){
 			  	var stats = data.statistieken;
 			  	for(var i = 0; i < stats.length; i++){
-				    if(stats[i].package == 'geografie' && stats[i].year == '2015'){
+				    if(stats[i].package == 'geografie'){
 				    	$http.get('http://datasets.antwerpen.be/v4/gis/' + stats[i].resource + '.json').
 			  				success(function(data, status, headers, config){
-					    		try{
-								  	if(data.data[0].geometry){
-								  		var geo = JSON.parse(data.data[0].geometry);
+					    	try{
+           var geo;
+								  	if(geo = JSON.parse(data.data[0].geometry)){
 								  		if(geo.type === 'Polygon'){
 								  			//console.log(set.data[0].thema + '/' + set.data[0].type + '/' + set.data[0].subtype);
 								  			var fileName = config.url.substr(config.url.lastIndexOf('/') + 1);
@@ -38,16 +38,16 @@ angular.module('buurtmeter.services', [])
 								  			else{
 								  				type = resource;
 								  			}
-								  			var set = {'used':false, 'range':5, 'resource':resource, 'type':type};
+								  	var set = {'used':false, 'range':5, 'resource':resource, 'type':type};
 											sets[set.resource] = set;
 											if(set.resource == 'wijkomgevingsinformatie'){
 												q.resolve(sets);
 											}
-								  		}
-								  	}
+								  }
+								 }
 								}
-								catch(e){}
-			  				});
+								catch(e){ console.log(e); }
+			  		});
 					}
 				}
 			  });
@@ -86,4 +86,3 @@ angular.module('buurtmeter.services', [])
     }
   }
 }]);
-

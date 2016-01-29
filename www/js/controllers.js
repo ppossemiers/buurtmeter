@@ -59,8 +59,8 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	// right-click
 	$scope.$on('leafletDirectiveMap.contextmenu', function(event, locationEvent){
 		$scope.map.markers = [];
-    	$scope.markerCount = 0;
-    	StorageService.setObject('mapMarkers', $scope.map.markers);
+  $scope.markerCount = 0;
+  StorageService.setObject('mapMarkers', $scope.map.markers);
 	});
 
 	setTitle = function(msg){
@@ -84,10 +84,11 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 	};
 
 	/* http://alienryderflex.com/polygon/
-	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against. 
-	Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point, 
+	The basic idea is to find all edges of the polygon that span the 'x' position of the point you're testing against.
+	Then you find how many of them intersect the vertical line that extends above your point. If an even number cross above the point,
 	then you're outside the polygon. If an odd number crosses above, then you're inside. */
 	inPolygon = function(location, polyLoc){
+		//console.log(polyLoc);
 		var lastPoint = polyLoc[polyLoc.length-1];
 		var isInside = false;
 		var x = location[0];
@@ -97,7 +98,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			var x1 = lastPoint[0];
 			var x2 = point[0];
 			var dx = x2 - x1;
-			
+
 			if(Math.abs(dx) > 180.0){
 				if(x > 0){
 					while(x1 < 0)
@@ -113,7 +114,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				}
 				dx = x2 - x1;
 			}
-			
+
 			if((x1 <= x && x2 > x) || (x1 >= x && x2 < x)){
 				var grad = (point[1] - lastPoint[1]) / dx;
 				var intersectAtLat = lastPoint[1] + ((x - x1) * grad);
@@ -133,22 +134,22 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
   			if($scope.myDataSets.hasOwnProperty(key) && $scope.myDataSets[key].used){
    				var tmpScore = 0;
   				try{
-					var set = JSON.parse(StorageService.get(key + '.json'));
-					var geo = JSON.parse(set.data[0].geometry);
-					if(geo.type == 'Polygon'){
-						var polygons = geo.coordinates;
-						for(var i = 0; i < polygons.length; i++){
-							if(inPolygon([lng, lat], polygons[i])){
-								tmpScore += 1;
-							}
+								var set = JSON.parse(StorageService.get(key + '.json'));
+								var setData = set.data;
+								for(var i = 0; i < setData.length; i++){
+										data = setData[i];
+										geometry = data.geometry;
+										coords = JSON.parse(geometry).coordinates[0];
+										if(inPolygon([lng, lat], coords)){
+													tmpScore += 1;
+										}
+									}
+									totalScore += tmpScore * ($scope.myDataSets[key].range / 10);
+									totalResult[key] = {'name':$scope.myDataSets[key].type, 'score':tmpScore * ($scope.myDataSets[key].range / 10)};
+					 }
+						catch(err){
+								console.log(err);
 						}
-						totalScore += tmpScore * ($scope.myDataSets[key].range / 10);
-						totalResult[key] = {'name':$scope.myDataSets[key].type, 'score':tmpScore * ($scope.myDataSets[key].range / 10)};
-					}
-				}
-				catch(err){
-					console.log(err);
-				}
 			}
 		}
 		totalResult.total = totalScore;
@@ -161,8 +162,8 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 		var areas = AreaService.all();
 		for(var i = 0; i < areas.length; i++){
 			var geo = JSON.parse(areas[i].geometry);
-			var coordinates = geo.coordinates[0];
-			if(inPolygon([lng, lat], coordinates)){
+			var coords = geo.coordinates[0];
+			if(inPolygon([lng, lat], coords)){
 				var scores = getAreaScore(lat, lng);
 				var msg = '<b>' + areas[i].wijknaam + '</b><div>' + 'Score : ' + scores.total + '</div>';
 				if(scores.total > 0){
@@ -192,7 +193,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 				        var ctx = canvas.getContext('2d');
 						canvas.width = 100;
 				        canvas.height = 100;
-				        img.onload = function(){        
+				        img.onload = function(){
 				            ctx.drawImage(this, 0, 0, 100, 100);
 				     		marker.message += '<br><div><center><img src=' + canvas.toDataURL() + '></center>';
 				     		// dunno why, but timeout necessary for update of map
@@ -231,7 +232,7 @@ angular.module('buurtmeter.controllers', ['leaflet-directive', 'ionic'])
 			setTitle('');
 		});
 	}
-	else{ 
+	else{
 		$timeout(function(){
 			document.getElementById('dsTitle').innerHTML = '<h3>DataSets (' + Object.keys($scope.myDataSets).length + ')</h3>';
 		}
